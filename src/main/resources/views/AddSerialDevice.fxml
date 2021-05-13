@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="160.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.yeesotr.auto.view.main.AddSerialDeviceController">
+   <children>
+      <VBox layoutX="14.0" layoutY="94.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+
+            <HBox alignment="CENTER_LEFT" fillHeight="false" prefHeight="40.0" prefWidth="600.0">
+               <children>
+                  <Label prefWidth="80.0" text="串口:" textAlignment="CENTER" />
+                  <ComboBox fx:id="serialPortComboBox" prefWidth="150.0">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin>
+                  </ComboBox>
+               </children>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="600.0">
+               <children>
+                  <Label prefWidth="80.0" text="OS:" textAlignment="CENTER" />
+                  <TextField disable="true" prefWidth="100.0" text="Android">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="249.0">
+                     <children>
+                        <Label prefWidth="80.0" text="Version:" textAlignment="CENTER" />
+                        <TextField fx:id="androidVersionTF" disable="true" prefHeight="23.0" prefWidth="100.0">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </TextField>
+                     </children>
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="600.0">
+               <children>
+                  <Label prefWidth="80.0" text="Model:" textAlignment="CENTER" />
+                  <TextField fx:id="modelTF" disable="true" prefWidth="100.0">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="249.0">
+                     <children>
+                        <Label prefWidth="80.0" text="SDK:" textAlignment="CENTER" />
+                        <TextField fx:id="sdkVersionTF" disable="true" prefHeight="23.0" prefWidth="100.0">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </TextField>
+                     </children>
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="600.0">
+               <children>
+                  <Label prefWidth="80.0" text="制造商:" textAlignment="CENTER" />
+                  <TextField fx:id="manufacturerTF" disable="true" prefWidth="100.0">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="249.0">
+                     <children>
+                        <Label prefWidth="80.0" text="Product:" textAlignment="CENTER" />
+                        <TextField fx:id="productTF" disable="true" prefHeight="23.0" prefWidth="100.0">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </TextField>
+                     </children>
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </HBox>
+         </children></VBox>
+   </children>
+</AnchorPane>
