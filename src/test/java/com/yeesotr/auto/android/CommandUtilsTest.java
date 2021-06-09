@@ -1,5 +1,7 @@
 package com.yeesotr.auto.android;
 
+import com.yeesotr.auto.android.command.CommandUtils;
+import com.yeesotr.auto.env.Environment;
 import io.appium.java_client.android.AndroidDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -7,10 +9,20 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Objects;
 
 @Slf4j
 class CommandUtilsTest {
+
+    @Test
+    void compareLong(){
+        Assertions.assertTrue(Objects.equals(new Long(Long.parseLong("1")), new Long(Long.parseLong("1"))));
+    }
+
+
 
     @RepeatedTest(1000)
     void execCommandSync() throws Exception{
@@ -31,6 +43,20 @@ class CommandUtilsTest {
 //        androidSerialPort.closePort() ;
     }
 
+
+    @Test
+    void exeCommandSyncMacos() throws Exception{
+        String command = "sh -c \"ps aux | grep " + Environment.APPIUM_ENTRY + " \"" ;
+        log.info("ps aux:"+CommandUtils.execCommandSync(command));
+        Runtime rt = Runtime.getRuntime();
+        String[] cmd = { "/bin/sh", "-c", "ps aux | grep "+ Environment.APPIUM_ENTRY };
+        Process proc = rt.exec(cmd);
+        BufferedReader is = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line;
+        while ((line = is.readLine()) != null) {
+            System.out.println(line);
+        }
+    }
 
 
     @Test

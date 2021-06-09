@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 @Slf4j
 public class BoxTest {
-    public static void main(String[] strs) throws  Exception{
+    public void main(String[] strs) throws  Exception{
 
         SerialPort[] ports = SerialPort.getCommPorts();
 

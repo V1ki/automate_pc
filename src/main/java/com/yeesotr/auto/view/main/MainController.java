@@ -1,50 +1,73 @@
 package com.yeesotr.auto.view.main;
 
-import com.yeesotr.auto.android.Automation;
-import com.yeesotr.auto.android.CommandUtils;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.yeesotr.auto.android.command.CommandUtils;
 import com.yeesotr.auto.android.model.Device;
-import com.yeesotr.auto.android.model.Record;
 import com.yeesotr.auto.appium.Appium;
+import com.yeesotr.auto.appium.AppiumManager;
 import com.yeesotr.auto.env.Environment;
+import com.yeesotr.auto.view.controller.EntryController;
+import com.yeesotr.auto.view.controller.IozoneController;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
+import javax.usb.UsbException;
+import javax.usb.UsbHostManager;
+import javax.usb.UsbServices;
+import javax.usb.event.UsbServicesEvent;
+import javax.usb.event.UsbServicesListener;
+import java.io.File;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Slf4j
 public class MainController implements Initializable {
 
-    public Button startTestBtn;
     public Button refreshBtn;
     public Button serialBtn;
     public TableView<Device> devicesTableView;
     public TableColumn<Device, String> nameColumn;
     public TableColumn<Device, String> versionColumn;
     public TableColumn<Device, String> statusColumn;
+    public AnchorPane testPlan;
+    public AnchorPane empty;
+    public AnchorPane entry;
+    public Pane iozone;
 
-    public AnchorPane rightPanel;
-    public TableView<Record> testProgressTable;
-    public Button stopTestBtn;
+    @FXML
+    EntryController entryController;
 
-    private List<Appium> appiumList = new ArrayList<>();
+    @FXML
+    TestPlanController testPlanController;
+
+    @FXML
+    IozoneController iozoneController;
 
     private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     private ObservableList<Device> deviceObservableList;
-    private ObservableList<Record> recordObservableList = FXCollections.observableArrayList();
 
     private Device selectedDevice;
+
+    private ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor;
+    private ScheduledFuture<?> mScheduledFuture = null;
+    Disposable disposable;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -52,61 +75,210 @@ public class MainController implements Initializable {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info(" -- stop all appium");
             executorService.shutdownNow();
-
-            appiumList.forEach(Appium::stop);
+            AppiumManager.getInstance().stopAll();
+            disposable.dispose();
         }));
-
+        entryController.init(this);
         _initLeftView();
-        _initRightView();
+        _initDeviceRefresh();
+    }
+
+    private void _initDeviceRefresh() {
+        try {
+            UsbServices services = UsbHostManager.getUsbServices();
+
+            disposable = Observable.create(emitter -> {
+                services.addUsbServicesListener(new UsbServicesListener() {
+                    @Override
+                    public void usbDeviceAttached(UsbServicesEvent event) {
+                        log.info("usbDeviceAttached: {}", event);
+//                        refreshDeviceList();
+                        if (!emitter.isDisposed()) {
+                            //发送消息
+                            emitter.onNext(event);
+                        }
+                    }
+
+                    @Override
+                    public void usbDeviceDetached(UsbServicesEvent event) {
+                        log.info("usbDeviceDetached: {}", event);
+//                        refreshDeviceList();
+                        if (!emitter.isDisposed()) {
+                            //发送消息
+                            emitter.onNext(event);
+                        }
+                    }
+                });
+
+
+                refreshBtn.setOnAction(e -> {
+                    if (!emitter.isDisposed()) {
+                        //发送消息
+                        emitter.onNext("refreshBtn");
+                    }
+                });
+
+            }).throttleLast(1, TimeUnit.SECONDS)
+                    .subscribe((arg) -> {
+                        refreshDeviceList();
+                    });
+        } catch (UsbException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void refreshDeviceList() {
+
+        Platform.runLater(() -> {
+            List<Device> deviceList = Device.getConnectedDevices();
+            List<Device> tmpResult = new ArrayList<>(deviceObservableList);
+            List<Device> needRemoveDeviceList = new ArrayList<>() ;
+
+            // 需要添加的设备,没有选中, 不需要处理.
+            deviceList.forEach(d -> {
+                if (!deviceObservableList.contains(d)) {
+                    tmpResult.add(d);
+                }
+            });
+            // 已经断开了的设备,需要对其相应的服务进行关闭.
+            deviceObservableList.forEach(d -> {
+                if (!deviceList.contains(d)) {
+                    tmpResult.remove(d);
+                    needRemoveDeviceList.add(d) ;
+                }
+            });
+            needRemoveDeviceList.stream().map(Device::getAppium).filter(Objects::nonNull).forEach(Appium::stop);
+
+            deviceObservableList.clear();
+            deviceObservableList.addAll(tmpResult);
+            log.info("refreshDeviceList!");
+        });
+    }
+
+    private <T> void addTooltipToColumnCells(TableColumn<Device, T> column) {
+
+        Callback<TableColumn<Device, T>, TableCell<Device, T>> existingCellFactory
+                = column.getCellFactory();
+
+        column.setCellFactory(c -> {
+            TableCell<Device, T> cell = existingCellFactory.call(c);
+
+            Tooltip tooltip = new Tooltip();
+            // can use arbitrary binding here to make text depend on cell
+            // in any way you need:
+            tooltip.textProperty().bind(cell.itemProperty().asString());
+
+            cell.setTooltip(tooltip);
+            return cell;
+        });
+    }
+
+    private void _resetRightView() {
+        testPlan.setVisible(false);
+        empty.setVisible(false);
+        entry.setVisible(false);
+        iozone.setVisible(false);
     }
 
 
+    public void showTestPlan(Device device) {
+        _resetRightView();
+        testPlanController.selectDevice(device);
+        testPlan.setVisible(true);
+    }
+
+    public void showIozone(Device device) {
+        _resetRightView();
+        iozoneController.setDevice(device);
+        iozone.setVisible(true);
+    }
+
+    public void showLoadingDialog(final Device device) {
+
+        Dialog<Device> dialog = new Dialog<>();
+        dialog.getDialogPane().getButtonTypes().clear();
+        dialog.getDialogPane().setPrefWidth(300);
+        dialog.getDialogPane().setPrefHeight(300);
+        dialog.setTitle("正在加载设备信息...");
+
+        final VBox vb = new VBox();
+
+        final ProgressIndicator pin = new ProgressIndicator();
+        pin.setProgress(-1);
+
+        vb.setAlignment(Pos.CENTER);
+        vb.getChildren().add(pin);
+        dialog.getDialogPane().setContent(vb);
+        Task<Boolean> task = new Task<Boolean>() {
+            @Override
+            public Boolean call() {
+                // 在这里写实际操作.
+                log.info("device:{}",device);
+                device.init();
+
+                device.preInstallApp("com.yeestor.iozone",
+                        Environment.APK_DIR+ File.separator+"iozone-release.apk");
+
+                device.grantPermission("com.yeestor.iozone","android.permission.READ_EXTERNAL_STORAGE");
+                device.grantPermission("com.yeestor.iozone","android.permission.WRITE_EXTERNAL_STORAGE");
+
+                Platform.runLater(()->{
+
+                    dialog.setTitle("正在连接设备中...");
+                });
+                entryController.setDevice(device);
+                return true;
+            }
+        };
+
+        task.setOnRunning((e) -> {
+            log.info("OnRunning!");
+            dialog.show();
+        });
+        task.setOnSucceeded((e) -> {
+            log.info("OnSucceeded!");
+            dialog.setResult(device);
+            dialog.close();
+
+            // process return value again in JavaFX thread
+        });
+        task.setOnFailed((e) -> {
+            log.info("OnFailed:{}",e);
+
+            dialog.setResult(device);
+            dialog.close();
+            // eventual error handling by catching exceptions from task.get()
+        });
+        new Thread(task).start();
+
+
+    }
+
     private void _initLeftView() {
 
-        refreshBtn.setOnAction(e -> {
-
-
-            List<Device> deviceList = Device.getConnectedDevices();
-            log.info("deviceList:{}",deviceList);
-
-            deviceList.forEach(d -> {
-                if(!deviceObservableList.contains(d)){
-                    deviceObservableList.add(d) ;
-                }
-            });
-            deviceObservableList.forEach(d-> {
-                if(!deviceList.contains(d)){
-                    deviceObservableList.remove(d); ;
-                }
-            });
-
-        });
-/*
-        serialBtn.setOnAction(event -> {
-            try {
-                Optional<Device> device = AddSerialDeviceController.showDialog();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });*/
-
-
-        List<Device> deviceList = Device.getConnectedDevices();
-        deviceObservableList = FXCollections.observableArrayList(deviceList) ;
+        deviceObservableList = FXCollections.observableArrayList(new ArrayList<>());
         devicesTableView.setItems(deviceObservableList);
 
         devicesTableView.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("serial"));
+
+        this.addTooltipToColumnCells(devicesTableView.getColumns().get(0));
+
         devicesTableView.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("androidVersion"));
         devicesTableView.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("state"));
 
-
         devicesTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            log.info("selectedItemProperty select newValue:{}", newValue);
-            this.selectedDevice = newValue;
-            startTestBtn.setDisable(this.selectedDevice != null && selectedDevice.getAppium() != null && selectedDevice.getAppium().isConnected());
-            if (selectedDevice != null) {
-                recordObservableList.addAll(selectedDevice.getRecordList());
+            log.info("selectedItemProperty select observable:{}  -- oldValue: {} -- newValue: {}", observable, oldValue, newValue);
+            if(newValue == null){
+                _resetRightView();
+                empty.setVisible(true);
+                return;
             }
+
+            showLoadingDialog(newValue);
+            _resetRightView();
+            entry.setVisible(true);
+
         });
 
         devicesTableView.setRowFactory(param -> {
@@ -117,11 +289,7 @@ public class MainController implements Initializable {
             rebootItem.setOnAction(itemEvent -> {
                 Device d = row.getItem();
                 CommandUtils.rebootDevice(d.getSerial());
-                Appium appium = d.getAppium();
-                if(appium != null){
-                    appium.stop();
-                }
-                appiumList.remove(appium);
+                AppiumManager.getInstance().stopAppium(d);
             });
             rowMenu.getItems().addAll(rebootItem);
 
@@ -135,226 +303,4 @@ public class MainController implements Initializable {
 
     }
 
-    private void _initRightView() {
-
-        testProgressTable.setItems(recordObservableList);
-
-        testProgressTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("startTime"));
-        testProgressTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("endTime"));
-        testProgressTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("desc"));
-
-
-        _initStartTestButton();
-
-        stopTestBtn.setDisable(true);
-        stopTestBtn.setOnAction(event -> {
-            // 停止测试。
-
-            Appium appium = selectedDevice.getAppium();
-            appium.stop();
-            appiumList.remove(appium);
-
-            stopTestBtn.setDisable(true);
-            startTestBtn.setDisable(false);
-        });
-    }
-
-
-    private void _initStartTestButton() {
-        startTestBtn.setDisable(true);
-        startTestBtn.setOnAction(event -> {
-
-            startTestBtn.setDisable(true);
-            stopTestBtn.setDisable(false);
-
-            testProgressTable.setVisible(true);
-
-
-            executorService.execute(() -> {
-                final Device device = selectedDevice;
-
-
-                if(device.getAppium() == null){
-                    try {
-                        Appium appium = new Appium();
-                        appium.start();
-                        appium.connect(device);
-                        appiumList.add(appium);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                startTest(device);
-
-                startTestBtn.setDisable(false);
-                stopTestBtn.setDisable(true);
-
-            });
-
-        });
-    }
-
-
-    public void startTest(Device device){
-        Automation automation = new Automation(device);
-        if (!device.getAppium().isConnected()) {
-            try {
-                device.getAppium().connect(device);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yy/MM/dd HH:mm:ss");
-
-            String time = dateFormat.format(new Date());
-
-            Record record = Record.builder()
-                    .desc("重装应用！")
-                    .startTime(dateFormat.format(new Date()))
-                    .build();
-            recordObservableList.add(record);
-            automation.removeAllApp();
-
-            Thread.sleep(1000);
-
-            String sdk = device.platformNo();
-            int platformNo = Integer.parseInt(sdk);
-
-            automation.installNeededApp(platformNo < 22);
-            log.info("install needed app!");
-            record.setEndTime(dateFormat.format(new Date()));
-
-//            automation.terminateApp("com.andromeda.androbench2");
-//            automation.terminateApp("com.example.sg.h2test");
-//            automation.terminateApp("com.silicongo.burntest");
-
-
-            record = Record.builder()
-                    .desc("删除测试文件夹")
-                    .startTime(dateFormat.format(new Date()))
-                    .build();
-            recordObservableList.add(record);
-            try {
-//                Map<String, Object> args = new HashMap<>();
-//                args.put("command", "rm");
-//                args.put("args", Lists.newArrayList("-r", "/mnt/sdcard/h2Test", "/mnt/sdcard/burn"));
-//                String output = String.valueOf(driver.executeScript("mobile:shell", args)).trim();
-//
-                CommandUtils.execCommandSync("cmd /c "+ Environment.ADB +" -s "+ device.getSerial() + " shell rm -r /mnt/sdcard/h2Test");
-                CommandUtils.execCommandSync("cmd /c "+ Environment.ADB +" -s "+ device.getSerial() + " shell rm -r /mnt/sdcard/burn");
-
-//                log.info(output);
-            } catch (Exception e) {
-                // e.printStackTrace();
-            }
-            record.setEndTime(dateFormat.format(new Date()));
-//                    device.addRecord(Record.builder().startTime(time).endTime(dateFormat.format(new Date())).build());
-
-
-            log.info("start test Androbench!");
-            for (int i = 0; i < 5; i++) {
-
-                time = dateFormat.format(new Date());
-                log.info("start test Androbench ! 0 - {}", i);
-                record = Record.builder()
-                        .desc(" SLC 性能 - " + (i + 1) + "/5")
-                        .startTime(time)
-                        .build();
-
-                recordObservableList.add(record);
-                automation.testAndrobench();
-
-                record.setEndTime(dateFormat.format(new Date()));
-                log.info("test Androbench ! 0 - {} completed", i);
-            }
-
-            time = dateFormat.format(new Date());
-            record = Record.builder()
-                    .desc("满盘H2 ")
-                    .startTime(time)
-                    .build();
-            recordObservableList.add(record);
-
-            log.info("start test H2Test left 200MB!");
-            automation.testH2Test(200);
-            log.info("test H2Test left 200Mb completed!");
-            record.setEndTime(dateFormat.format(new Date()));
-
-            time = dateFormat.format(new Date());
-            record = Record.builder()
-                    .desc("删除一半H2文件")
-                    .startTime(time)
-                    .build();
-            recordObservableList.add(record);
-
-            automation.deleteHalfH2TestFile("/mnt/sdcard/h2Test");
-            record.setEndTime(dateFormat.format(new Date()));
-
-
-            for (int i = 0; i < 5; i++) {
-                time = dateFormat.format(new Date());
-                log.info("start test Androbench ! 0 - {}", i);
-                record = Record.builder()
-                        .desc(" TLC 性能 - " + (i + 1) + "/5")
-                        .startTime(time)
-                        .build();
-
-                recordObservableList.add(record);
-                automation.testAndrobench();
-
-                record.setEndTime(dateFormat.format(new Date()));
-                log.info("test Androbench ! 1 - {} completed", i);
-            }
-
-            record = Record.builder()
-                    .desc(" H2数据填充 ")
-                    .startTime(time)
-                    .build();
-
-            recordObservableList.add(record);
-            log.info("start test H2Test left 3GB!");
-            automation.testH2Test(3 * 1024);
-            log.info("test H2Test left 3GB completed!");
-            record.setEndTime(dateFormat.format(new Date()));
-
-
-            record = Record.builder()
-                    .desc(" BIT老化 ")
-                    .startTime(time)
-                    .build();
-
-            recordObservableList.add(record);
-            log.info("start test BurnTest! TIME: " + new Date());
-            automation.testBurnTest();
-            log.info("test BurnTest completed!" + new Date());
-
-            record.setEndTime(dateFormat.format(new Date()));
-
-            automation.terminateApp("com.silicongo.burntest");
-
-
-            for (int i = 0; i < 5; i++) {
-                time = dateFormat.format(new Date());
-                log.info("start test Androbench ! 0 - {}", i);
-                record = Record.builder()
-                        .desc(" 老化后性能 - " + (i + 1) + "/5")
-                        .startTime(time)
-                        .build();
-
-                recordObservableList.add(record);
-                automation.testAndrobench();
-
-                record.setEndTime(dateFormat.format(new Date()));
-                log.info("test Androbench ! 1 - {} completed", i);
-            }
-
-
-        } catch (Exception e) {
-            log.warn("Test with exception:{}",e.getMessage());
-        }
-    }
 }

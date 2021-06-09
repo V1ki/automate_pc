@@ -1,4 +1,4 @@
-package com.yeesotr.auto.android;
+package com.yeesotr.auto.android.command;
 
 import com.yeesotr.auto.env.Environment;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +9,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class CommandUtils {
+public class CommandUtils implements Commander{
 
 
-    private BufferedWriter stdin;
+    private final BufferedWriter stdin;
     private Process p = null;
+    private final List<CommanderOutputCallback> callbackList = new ArrayList<>();
+
     public CommandUtils() {
 
         // init shell
@@ -34,20 +36,36 @@ public class CommandUtils {
         Scanner scanner = new Scanner(p.getInputStream());
         Thread mThread = new Thread(()->{
             while (scanner.hasNextLine()) {
-                System.out.println(scanner.nextLine());
+                String newLine = scanner.nextLine();
+
+                callbackList.forEach(callback -> {
+                    callback.onNewline(newLine);
+                });
+
             }
             log.info("Thread stop!");
         });
         mThread.start();
     }
 
-    public void close(){
+    public CommandUtils close(){
         log.info("before scanner quit!");
         try {
             p.destroy();
         }catch (Exception e){
             log.warn(e.getMessage());
         }
+        return this;
+    }
+
+    @Override
+    public void addOutputCallback(CommanderOutputCallback callback) {
+        callbackList.add(callback);
+    }
+
+    @Override
+    public void removeOutputCallback(CommanderOutputCallback callback) {
+        callbackList.remove(callback);
     }
 
     public CommandUtils executeCommand(String command) {
@@ -72,9 +90,23 @@ public class CommandUtils {
         BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
         String result = buf.lines().collect(Collectors.joining("\n"));
 
-        log.info(" {} -- {} ",command, result);
         return result;
     }
+
+    public static String execCommandSync(int milliseconds, String... command) throws IOException {
+        Runtime run = Runtime.getRuntime();
+        Process pr = run.exec(command);
+        try {
+            pr.waitFor(milliseconds,TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+        String result = buf.lines().collect(Collectors.joining("\n"));
+
+        return result;
+    }
+
 
 
     public static String execCommandSync(String command) throws IOException {
@@ -82,7 +114,7 @@ public class CommandUtils {
     }
 
     public static void rebootDevice(String serial) {
-        String command = "cmd /c "+ Environment.ADB + " -s " + serial + " reboot" ;
+        String command = Environment.ADB + " -s " + serial + " reboot" ;
 
         try {
             execCommandSync(command) ;
@@ -93,11 +125,12 @@ public class CommandUtils {
     }
 
     public static int findAvailablePort(int startPort) throws Exception{
-        String command = "cmd /c netstat -ano " ;
+        String command = "netstat -an " ;
         String result = execCommandSync(command) ;
 //        log.info("command:{} result:{} -",command,result.trim());
 
-        while (result.contains(":"+startPort)){
+        String concatSymbol = Environment.isMacos() ? "." : ":" ;
+        while (result.contains(concatSymbol+startPort)){
             startPort++ ;
         }
         log.info("find available port:"+startPort);

@@ -39,7 +39,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.yeesotr.auto.android.SequenceTest</mainClass>
+                            <mainClass>com.yeesotr.auto.view.AutomationApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -74,11 +74,15 @@
     </repositories>
 
     <dependencies>
-
+        <dependency>
+            <groupId>org.luaj</groupId>
+            <artifactId>luaj-jse</artifactId>
+            <version>3.0.1</version>
+        </dependency>
         <dependency>
             <groupId>com.github.appium</groupId>
             <artifactId>java-client</artifactId>
-            <version>v7.4.1</version>
+            <version>v7.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -137,6 +141,26 @@
             <groupId>org.jfxtras</groupId>
             <artifactId>jmetro</artifactId>
             <version>8.6.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>8.40.18</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.usb</groupId>
+            <artifactId>usb-api</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.usb4java</groupId>
+            <artifactId>usb4java</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.usb4java</groupId>
+            <artifactId>usb4java-javax</artifactId>
+            <version>1.2.0</version>
         </dependency>
     </dependencies>
 

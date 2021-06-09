@@ -80,18 +80,12 @@ public class AddUSBDeviceController implements Initializable {
                 alert.show();
             }
             else{
-                manufacturerTF.setText(selectedDevice.manufacture());
-                try {
-                    sdkVersionTF.setText(selectedDevice.platformNo());
-                    androidVersionTF.setText(selectedDevice.getAndroidVersion());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                manufacturerTF.setText(selectedDevice.getManufacture());
+                sdkVersionTF.setText(selectedDevice.getApiVersion());
+                androidVersionTF.setText(selectedDevice.getAndroidVersion());
                 modelTF.setText(selectedDevice.getModel());
 
                 productTF.setText(selectedDevice.getProduct());
-
-
 
             }
 

@@ -1,6 +1,5 @@
 package com.yeesotr.auto.android.command;
 
-import com.yeesotr.auto.android.CommandUtils;
 import com.yeesotr.auto.android.model.Device;
 import com.yeesotr.auto.env.Environment;
 import lombok.Data;

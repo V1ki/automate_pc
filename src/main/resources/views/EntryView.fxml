@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.effect.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.yeesotr.auto.view.controller.EntryController">
+   <children>
+      <VBox spacing="10.0" style="-fx-background-color: #DCDCDC; -fx-max-width: 100%];" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox style="-fx-spacing: 10; -fx-padding: 10px; -fx-background-color: #F5F5F5;">
+               <children>
+                  <Label layoutX="43.0" layoutY="31.0" text="设备信息" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Font" size="24.0" />
+                     </font>
+                  </Label>
+                   <HBox alignment="CENTER_LEFT" style="-fx-spacing: 10;">
+                       <children>
+                           <HBox>
+                               <children>
+                                   <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="序列号:" />
+                                   <Label fx:id="serialNoLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-min-width: 130px; -fx-spacing: 10;" text="-" />
+                               </children>
+                           </HBox>
+                           <HBox layoutX="333.0" layoutY="74.0">
+                               <children>
+                                   <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="IP地址:" />
+                                   <Label fx:id="ipLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-spacing: 10; -fx-min-width: 130px;" text="-" />
+                               </children>
+                           </HBox>
+                       </children>
+                   </HBox>
+                  <HBox style="-fx-spacing: 10;">
+                     <children>
+                        <HBox>
+                           <children>
+                              <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="Android 版本" />
+                              <Label fx:id="androidVersionLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-min-width: 130px; -fx-spacing: 10;" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox layoutX="333.0" layoutY="74.0">
+                           <children>
+                              <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="API 版本:" />
+                              <Label fx:id="apiVersionLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-spacing: 10; -fx-min-width: 130px;" text="-" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </HBox>
+                  <HBox style="-fx-spacing: 10;">
+                     <children>
+                        <HBox>
+                           <children>
+                              <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="Product:" />
+                              <Label fx:id="productLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-min-width: 130px; -fx-spacing: 10;" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox layoutX="333.0" layoutY="74.0">
+                           <children>
+                              <Label alignment="CENTER_RIGHT" layoutX="76.0" layoutY="65.0" prefWidth="80.0" text="Model:" />
+                              <Label fx:id="modelLabel" alignment="CENTER_RIGHT" layoutX="142.0" layoutY="65.0" style="-fx-spacing: 10; -fx-min-width: 130px;" text="-" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </VBox>
+            <fx:include fx:id="scriptNode" source="ScriptNode.fxml" />
+            <VBox style="-fx-spacing: 10; -fx-padding: 10px; -fx-background-color: #F5F5F5;" visible="false">
+               <children>
+                  <Label layoutX="43.0" layoutY="31.0" text="预置测试" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Font" size="24.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <AnchorPane HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label text="包含AndroBench , aH2test , aBurnTest等测试" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </AnchorPane>
+                        <Button mnemonicParsing="false" onAction="#onInnerTestClicked" text="开始测试" textAlignment="CENTER" />
+                     </children>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </VBox>
+            <VBox style="-fx-spacing: 10; -fx-padding: 10px; -fx-background-color: #F5F5F5;" visible="false">
+               <children>
+                  <Label layoutX="43.0" layoutY="31.0" text="iozone" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Font" size="24.0" />
+                     </font>
+                  </Label>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <AnchorPane HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label text="iozone 测试" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </AnchorPane>
+                        <Button mnemonicParsing="false" onAction="#onIozoneClicked" text="开始测试" textAlignment="CENTER" />
+                     </children>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </VBox>
+
+         </children>
+      </VBox>
+
+   </children>
+</AnchorPane>

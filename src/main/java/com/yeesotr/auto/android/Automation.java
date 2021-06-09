@@ -6,9 +6,12 @@ import io.appium.java_client.MobileElement;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.Activity;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.nativekey.AndroidKey;
+import io.appium.java_client.android.nativekey.KeyEvent;
 import io.appium.java_client.appmanagement.ApplicationState;
 import io.appium.java_client.touch.TapOptions;
 import io.appium.java_client.touch.offset.PointOption;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.openqa.selenium.remote.RemoteWebElement;
@@ -27,9 +30,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
+@Data
 public class Automation {
 
-    private final AndroidDriver<MobileElement> driver;
+    private AndroidDriver<MobileElement> driver;
 
     private Device device ;
 
@@ -69,12 +73,7 @@ public class Automation {
 
 
     public void terminateApp(String bundleId){
-        try {
-            driver.terminateApp(bundleId);
-        } catch (Exception e) {
-            driver.runAppInBackground(Duration.ofMillis(100));
-        }
-
+        driver.terminateApp(bundleId);
     }
 
     public void grantPermission(String packageName ,String permission){
@@ -107,6 +106,27 @@ public class Automation {
         screenshot(Environment.RESULTS_DIR+"meminfo.png");
     }
 
+    public boolean checkStatus() {
+        try {
+            Map<String, Object> status = driver.getStatus();
+            log.info("status:{}  --sessionId: {} -- getSessionDetails:{} ",status,driver.getSessionId(),driver.getSessionDetails());
+        }catch (Exception e){
+            return false;
+        }
+        return true ;
+    }
+
+    public void reconnect(){
+
+            // driver 异常,需要重新连接Appium.
+            try {
+                device.getAppium().connect(device);
+                this.driver = device.getAppium().getDriver() ;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+    }
 
     public int deleteHalfH2TestFile(String filepath) {
         // 删除一半文件
@@ -529,9 +549,22 @@ public class Automation {
             return driver.findElementByAndroidUIAutomator("new UiSelector().resourceId(\"" + targetResourceId + "\")");
         } catch (Exception e) {
             log.warn("cannot find element using: {} : {}",targetResourceId, e.getMessage());
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
+    }
+
+    public void dismiss(){
+
+        try{
+            Alert alert = driver.switchTo().alert() ;
+            List<MobileElement> elements = driver.findElements(By.className("android.widget.Button"));
+            elements.forEach(RemoteWebElement::click);
+        }
+        catch (Exception e){
+            log.info("No Alert Present!");
+        }
+
     }
 
     public MobileElement waitForPresence(int timeLimitInSeconds, By locator) {
