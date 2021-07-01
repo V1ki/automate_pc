@@ -70,7 +70,7 @@ public class command extends TwoArgFunction {
     public LuaValue call(LuaValue modname, LuaValue env) {
         LuaValue library = tableOf();
         Device device = Optional.ofNullable(this.automation).map(Automation::getDevice).orElse(null) ;
-
+        log.info(" -- command init");
         library.set("iozone", new iozone(this.automation));
         library.set("pull", new pull(device));
         library.set("shell", new shell(device));
@@ -247,6 +247,7 @@ public class command extends TwoArgFunction {
         @Override
         public LuaValue call(LuaValue arg) {
             String shell = arg.tojstring() ;
+            log.info("run shell:{} with device:{}", shell, Optional.ofNullable(device).map(Device::getSerial).orElse(null));
 
             if(device != null) {
                String result = device.execAdbShell(shell) ;
