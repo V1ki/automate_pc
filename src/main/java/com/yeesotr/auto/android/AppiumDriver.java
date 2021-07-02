@@ -5,6 +5,7 @@ import io.appium.java_client.MobileElement;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.Activity;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.AndroidTouchAction;
 import io.appium.java_client.appmanagement.ApplicationState;
 import io.appium.java_client.touch.TapOptions;
 import io.appium.java_client.touch.offset.PointOption;
@@ -54,8 +55,8 @@ public class AppiumDriver {
         this.resultDir = installDir+ File.separator +"results"+File.separator ;
 
         File resultsDir = new File(installDir+File.separator+"results");
-        if(!resultsDir.exists()){
-            resultsDir.mkdirs() ;
+        if(!resultsDir.exists() && !resultsDir.mkdirs()){
+             log.warn("create results failed!");
         }
 
     }
@@ -155,7 +156,7 @@ public class AppiumDriver {
 
     public void grantPermission(String packageName ,String permission){
 
-        HashMap args = new HashMap<>();
+        HashMap<String, String> args = new HashMap<>();
         args.put("command", "pm grant "+packageName+" "+permission);
 //        args.put("args", Lists.newArrayList(command.toString()));
         String output = null ;
@@ -290,7 +291,7 @@ public class AppiumDriver {
         if (titleElement != null && "License".equals(titleElement.getText())) {
 
             while (true) {
-                (new TouchAction(driver))
+                (new TouchAction<AndroidTouchAction>(driver))
                         .press(PointOption.point(330, 1024))
                         .moveTo(PointOption.point(330, 200))
                         .release()
@@ -372,7 +373,7 @@ public class AppiumDriver {
 
                 while (true) {
                     log.info("scroll down!");
-                    (new TouchAction(driver))
+                    (new TouchAction<AndroidTouchAction>(driver))
                             .press(PointOption.point(330, 700))
                             .moveTo(PointOption.point(330, 200))
                             .release()
@@ -468,9 +469,7 @@ public class AppiumDriver {
 
 //            driver.startRecordingScreen();
 //            log.info(driver.getPageSource());
-            while (!"com.andromeda.androbench2".equals(driver.getCurrentPackage()) || !".main".equals(driver.currentActivity())) {
-                Thread.sleep(100);
-            }
+
 
 
 //            MobileElement el1 = waitForPresence( 10, "android:id/tabs");
@@ -480,7 +479,7 @@ public class AppiumDriver {
 //            log.info(" tb1--- " + tb1);
 
             MobileElement el1 = waitForPresenceMS(100, "android:id/tabs");
-            ;
+
 
             if (rect == null) {
                 rect = el1.getRect();
@@ -609,6 +608,14 @@ public class AppiumDriver {
             return driver.findElementByAndroidUIAutomator("new UiSelector().resourceId(\"" + targetResourceId + "\")");
         } catch (Exception e) {
             log.warn("cannot find element using:" + targetResourceId);
+
+
+            try {
+                screenshot( "."+File.separator+ "devices"+File.separator+serial +File.separator + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date())+".png" );
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
             return null;
         }
     }

@@ -1,6 +1,6 @@
 package com.yeesotr.auto.view.main;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.yeesotr.auto.android.Automation;
 import com.yeesotr.auto.android.command.CommandUtils;
 import com.yeesotr.auto.android.model.Device;
 import com.yeesotr.auto.appium.Appium;
@@ -119,9 +119,7 @@ public class MainController implements Initializable {
                 });
 
             }).throttleLast(1, TimeUnit.SECONDS)
-                    .subscribe((arg) -> {
-                        refreshDeviceList();
-                    });
+                    .subscribe((arg) -> refreshDeviceList());
         } catch (UsbException e) {
             e.printStackTrace();
         }
@@ -223,10 +221,7 @@ public class MainController implements Initializable {
                 device.grantPermission("com.yeestor.iozone","android.permission.READ_EXTERNAL_STORAGE");
                 device.grantPermission("com.yeestor.iozone","android.permission.WRITE_EXTERNAL_STORAGE");
 
-                Platform.runLater(()->{
-
-                    dialog.setTitle("正在连接设备中...");
-                });
+                Platform.runLater(()-> dialog.setTitle("正在连接设备中..."));
                 entryController.setDevice(device);
                 return true;
             }
@@ -291,7 +286,16 @@ public class MainController implements Initializable {
                 CommandUtils.rebootDevice(d.getSerial());
                 AppiumManager.getInstance().stopAppium(d);
             });
-            rowMenu.getItems().addAll(rebootItem);
+
+
+            MenuItem screenShotItem = new MenuItem("截屏");
+            screenShotItem.setOnAction(itemEvent -> {
+                Device d = row.getItem();
+                new Automation(d).screenshotNow();
+
+            });
+
+            rowMenu.getItems().addAll(rebootItem,screenShotItem);
 
             // only display context menu for non-empty rows:
             row.contextMenuProperty().bind(

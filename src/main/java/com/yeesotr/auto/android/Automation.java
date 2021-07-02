@@ -6,6 +6,7 @@ import io.appium.java_client.MobileElement;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.Activity;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.AndroidTouchAction;
 import io.appium.java_client.android.nativekey.AndroidKey;
 import io.appium.java_client.android.nativekey.KeyEvent;
 import io.appium.java_client.appmanagement.ApplicationState;
@@ -49,8 +50,8 @@ public class Automation {
         resultDir = Environment.RESULTS_DIR + "Test_" + simpleDateFormat.format(new Date())  + File.separator;
 
         File resultDirFile = new File(resultDir) ;
-        if(!resultDirFile.exists()){
-            resultDirFile.mkdirs() ;
+        if(!resultDirFile.exists() && !resultDirFile.mkdirs()){
+             log.warn("create test folder failed");
         }
     }
 
@@ -246,7 +247,7 @@ public class Automation {
         if (titleElement != null && "License".equals(titleElement.getText())) {
 
             while (true) {
-                (new TouchAction(driver))
+                (new TouchAction<AndroidTouchAction>(driver))
                         .press(PointOption.point(330, dim.height - 100))
                         .moveTo(PointOption.point(330, 200))
                         .release()
@@ -325,7 +326,7 @@ public class Automation {
 
                 while (true) {
                     log.info("scroll down!");
-                    (new TouchAction(driver))
+                    (new TouchAction<AndroidTouchAction>(driver))
                             .press(PointOption.point(330, 700))
                             .moveTo(PointOption.point(330, 200))
                             .release()
@@ -416,9 +417,7 @@ public class Automation {
 
 //            driver.startRecordingScreen();
 //            log.info(driver.getPageSource());
-            while (!"com.andromeda.androbench2".equals(driver.getCurrentPackage()) || !".main".equals(driver.currentActivity())) {
-                Thread.sleep(100);
-            }
+
 
 
 //            MobileElement el1 = waitForPresence( 10, "android:id/tabs");
@@ -428,7 +427,7 @@ public class Automation {
 //            log.info(" tb1--- " + tb1);
 
             Capabilities c = driver.getCapabilities();
-            log.info(" Capabilities : {}" + c);
+            log.info(" Capabilities : {}" , c);
 
             MobileElement el1 = waitForPresence(100, "android:id/tabs");
 
@@ -537,6 +536,16 @@ public class Automation {
 
     }
 
+    public void screenshotNow(){
+
+        try {
+            screenshot( "."+File.separator+ "devices"+File.separator+device.getSerial() +File.separator + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date())+".png" );
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+    }
+
 
     public MobileElement waitForPresence(int timeLimitInSeconds, String targetResourceId) {
         return waitForPresence(timeLimitInSeconds, By.id(targetResourceId));
@@ -550,6 +559,8 @@ public class Automation {
         } catch (Exception e) {
             log.warn("cannot find element using: {} : {}",targetResourceId, e.getMessage());
 //            e.printStackTrace();
+            screenshotNow();
+
             return null;
         }
     }
@@ -560,6 +571,7 @@ public class Automation {
             Alert alert = driver.switchTo().alert() ;
             List<MobileElement> elements = driver.findElements(By.className("android.widget.Button"));
             elements.forEach(RemoteWebElement::click);
+            log.debug("call dismiss!");
         }
         catch (Exception e){
             log.info("No Alert Present!");
@@ -574,6 +586,8 @@ public class Automation {
             return (MobileElement) wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         } catch (Exception e) {
             log.warn(e.getMessage());
+
+            screenshotNow();
             return null;
         }
     }
@@ -586,6 +600,8 @@ public class Automation {
             return driver.findElementByAndroidUIAutomator(selector);
         } catch (Exception e) {
             log.warn("cannot find element using:" + selector);
+
+            screenshotNow();
             return null;
         }
     }
