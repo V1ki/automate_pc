@@ -28,6 +28,10 @@ public class Environment {
         ANDROID_HOME = Optional.ofNullable(System.getenv("ANDROID_HOME")).orElse(INSTALL_DIR+ File.separator+ "Android");
         JAVA_HOME = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(INSTALL_DIR+ File.separator+ "JDK");
         APK_DIR = INSTALL_DIR+ File.separator+ "apks";
+
+        log.debug("ANDROID_HOME:"+ANDROID_HOME);
+        log.debug("JAVA_HOME:"+JAVA_HOME);
+
         String osName = System.getProperty("os.name");
         OS = osName ;
         String appium_prefix = isMacos() ? "/Applications/Appium.app/Contents/Resources/app/node_modules/" : INSTALL_DIR + File.separator ;
@@ -37,7 +41,9 @@ public class Environment {
         RESULTS_DIR = INSTALL_DIR+File.separator+"results" + File.separator ;
         File resultsDir = new File(RESULTS_DIR);
         if(!resultsDir.exists()){
-            resultsDir.mkdirs() ;
+            if(!resultsDir.mkdirs()){
+                log.warn("Mkdir Results failed");
+            }
         }
 
     }

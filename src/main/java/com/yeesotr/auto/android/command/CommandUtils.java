@@ -25,7 +25,7 @@ public class CommandUtils implements Commander{
         try {
             p = builder.start();
         } catch (IOException e) {
-            System.out.println(e);
+            log.warn("ProgressBuild init failed",e);
         }
         // get stdin of shell
         stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
@@ -38,9 +38,7 @@ public class CommandUtils implements Commander{
             while (scanner.hasNextLine()) {
                 String newLine = scanner.nextLine();
 
-                callbackList.forEach(callback -> {
-                    callback.onNewline(newLine);
-                });
+                callbackList.forEach(callback -> callback.onNewline(newLine));
 
             }
             log.info("Thread stop!");
@@ -70,6 +68,7 @@ public class CommandUtils implements Commander{
 
     public CommandUtils executeCommand(String command) {
         try {
+            log.debug(command);
             // single execution
             stdin.write(command);
             stdin.newLine();
@@ -80,6 +79,7 @@ public class CommandUtils implements Commander{
         return this ;
     }
     public static String execCommandSync(String command,int milliseconds) throws IOException {
+        log.debug(command);
         Runtime run = Runtime.getRuntime();
         Process pr = run.exec(command);
         try {
@@ -88,9 +88,8 @@ public class CommandUtils implements Commander{
             e.printStackTrace();
         }
         BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-        String result = buf.lines().collect(Collectors.joining("\n"));
 
-        return result;
+        return buf.lines().collect(Collectors.joining("\n"));
     }
 
     public static String execCommandSync(int milliseconds, String... command) throws IOException {
@@ -102,9 +101,8 @@ public class CommandUtils implements Commander{
             e.printStackTrace();
         }
         BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-        String result = buf.lines().collect(Collectors.joining("\n"));
 
-        return result;
+        return buf.lines().collect(Collectors.joining("\n"));
     }
 
 
@@ -143,7 +141,7 @@ public class CommandUtils implements Commander{
 
     }
 
-    public static void execCommandAsync(String command) throws Exception {
+    public static void execCommandAsync(String command) {
 
         new Thread(()-> {
             List<String> list = new ArrayList<>(Arrays.asList(
@@ -156,7 +154,7 @@ public class CommandUtils implements Commander{
         environment.put("ANDROID_HOME", "D:\\Android\\Sdk");
 //        builder.command("set","ANDROID_HOME=D:\\Android\\Sdk ;");
 //        builder.command("echo", "%ANDROID_HOME% ;");
-            Process pr = null;
+            Process pr;
             try {
                 pr = builder.start();
                 BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
