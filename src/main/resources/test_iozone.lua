@@ -17,6 +17,9 @@ emmcSize = emmcSize / 1024
 totalPercent = 0
 TBWSize = 0
 currTestCap = 0
+
+writeCount = 0
+
 if 8192 > emmcSize then
     TBWSize = 8 * 1024 * 1024
 elseif 16384 > emmcSize then
@@ -25,6 +28,18 @@ else
     TBWSize = 15 * 1024 * 1024
 end
 
+
+function humanSize(s)
+    suffixes = {'MB', 'GB', 'TB' }
+    for i, suffix in pairs(suffixes) do
+        if s < 1024 then
+            return string.format("%d %s",s, suffix)
+        end
+        s = s / 1024
+     end
+
+    return string.format("%d TB",count)
+end
 
 for i = 1, #testItemPercent do
     totalPercent = testItemPercent[i] * testItemBs[i] + totalPercent
@@ -37,6 +52,7 @@ log('iozone', string.format('emmcSize:%d!',emmcSize))
 log('iozone', string.format('availableCap:%d!',availableCap))
 
 
+log('iozone', string.format('prepare test!  Already Write:%s ',humanSize(writeCount)))
 local earlyBreak = false
 while true do
 
@@ -47,12 +63,13 @@ while true do
     for i=1,#testItemPercent do
         log('iozone', string.format('start No.%d test!',i))
         local itemCap = availableCap * testItemPercent[i] * testItemBs[i] / totalPercent
-        command.shell(string.format('touch /mnt/sdcard/%d_seq.io',testItemBs[i]))
+--         command.shell(string.format('touch /mnt/sdcard/%d_seq.io',testItemBs[i]))
         local options = string.format('-w -i0 -i2 -r%dk -s%dm -f /mnt/sdcard/%d_seq.io',testItemBs[i], itemCap ,testItemBs[i])
         log('iozone', options)
         log('iozone', command.iozone(options))
+        writeCount = writeCount + itemCap * 3
         ----    command.pull("/mnt/sdcard/test.bin", "/Users/v1ki/IdeaProjects/automate_pc/results")
-        log('iozone', string.format('No.%d test completed!',i))
+        log('iozone', string.format('No.%d test completed !  Already Write:%s ',i,humanSize(writeCount)))
         currTestCap = currTestCap + itemCap * 3
         if currTestCap >= TBWSize then
             earlyBreak = true
