@@ -6,6 +6,7 @@ import io.appium.java_client.MobileElement;
 import javafx.application.Platform;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.OneArgFunction;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
  * as a java call with no arguments.  This invocation should be used to initialize
  * the library, and add any values to globals that are desired.
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
 public class command extends TwoArgFunction {
@@ -89,6 +91,7 @@ public class command extends TwoArgFunction {
     /**
      * Mathematical sinh function provided as a OneArgFunction.
      */
+    @EqualsAndHashCode(callSuper = true)
     @Data
     static class iozone extends OneArgFunction {
         private Automation automation;
@@ -107,10 +110,17 @@ public class command extends TwoArgFunction {
 
             automation.pullToForeground("com.yeestor.iozone", ".MainActivity");
             MobileElement iozoneOptionText = automation.waitForPresenceMS(2000, "com.yeestor.iozone:id/iozoneOptionText");
-            if(iozoneOptionText == null) {
+            while (iozoneOptionText == null) {
                 //
                 automation.dismiss();
                 iozoneOptionText = automation.waitForPresenceMS(2000, "com.yeestor.iozone:id/iozoneOptionText");
+
+                log.info(" can not found OptionText");
+                try {
+                    Thread.sleep(1000 * 60 );
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             iozoneOptionText.clear();
             iozoneOptionText.setValue(iozoneOption);
@@ -122,7 +132,7 @@ public class command extends TwoArgFunction {
             currentDevice.startIozoneLog();
             new Thread(() -> {
                 Socket socket = null;
-                DataInputStream dis = null;
+                DataInputStream dis;
                 try {
                     socket = new Socket("localhost", currentDevice.getForwardPort());
                     log.debug("建立新连接:" + socket);
@@ -159,7 +169,9 @@ public class command extends TwoArgFunction {
 
                 } finally {
                     try {
-                        socket.close();
+                        if (socket != null) {
+                            socket.close();
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
