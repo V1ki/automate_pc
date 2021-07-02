@@ -12,9 +12,11 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 一个设备 对应着 一个Appium 的服务端。
@@ -63,9 +65,11 @@ public class Appium implements Commander.CommanderOutputCallback {
             commander.executeCommand("export ANDROID_HOME=" + Environment.ANDROID_HOME);
             commander.executeCommand("export JAVA_HOME=" + Environment.JAVA_HOME);
         }
+
         commander.executeCommand("node \"" + Environment.APPIUM_ENTRY + "\" " +
                 "--allow-insecure=adb_shell " +
                 "--log-timestamp " +
+                "--log ." +File.separator+ "logs" +File.separator+ new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date()) + ".log " +
                 "--log-level=info " +
                 "--port=" + port);
 //        commander.executeCommand("sh /Users/v1ki/IdeaProjects/automate_pc/start.sh "+Environment.APPIUM_ENTRY+" "+port +" &");
@@ -79,7 +83,7 @@ public class Appium implements Commander.CommanderOutputCallback {
         try {
             platformNo = Integer.parseInt(sdk);
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
         try {
             if (platformNo < 22) {
