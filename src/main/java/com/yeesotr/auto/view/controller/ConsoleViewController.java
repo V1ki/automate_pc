@@ -2,18 +2,12 @@ package com.yeesotr.auto.view.controller;
 
 import com.yeesotr.auto.android.model.Device;
 import com.yeesotr.auto.lua.LogUtils;
-import javafx.animation.Interpolator;
 import javafx.animation.Transition;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
@@ -63,15 +57,17 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
         File file = device.getCurrentLog();
         try {
             Scanner scanner = new Scanner(file);
+            StringBuilder sb = new StringBuilder();
             while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                Text text = new Text(line+ "\n");
-                text.setFill(Color.WHITE);
-                text.setFont(font);
-                textFlow.getChildren().add(
-                        text
-                );
+                sb.append(scanner.nextLine()).append("\n");
             }
+
+            Text text = new Text(sb.toString());
+            text.setFill(Color.WHITE);
+            text.setFont(font);
+            textFlow.getChildren().add(
+                    text
+            );
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -83,7 +79,7 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
         Platform.runLater(()->{
             String line = time + LogUtils.SEPARATOR + tag   + LogUtils.SEPARATOR + msg + "\n";
             Text text = new Text(line);
-            text.setFill(Color.RED);
+            text.setFill(Color.WHITE);
             text.setFont(font);
             textFlow.getChildren().add(
                     text
