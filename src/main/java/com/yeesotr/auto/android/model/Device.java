@@ -240,13 +240,17 @@ public class Device {
     }
 
     public void init() {
+
+        if(currentLog == null){
+            currentLog = new File("devices/" + this.serial + "/logs/" + System.currentTimeMillis() + ".log");
+        }
+
         getManufacture();
         getAndroidVersion();
         getApiVersion();
         getIp();
         fetchListPackages();
         // 初始化文件
-        currentLog = new File("devices/" + this.serial + "/logs/" + System.currentTimeMillis() + ".log");
     }
 
     //Environment.APK_DIR+File.separator+"H2Test.apk"
