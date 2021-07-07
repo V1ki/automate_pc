@@ -151,8 +151,8 @@ public class TestPlanController implements Initializable {
 //                args.put("args", Lists.newArrayList("-r", "/mnt/sdcard/h2Test", "/mnt/sdcard/burn"));
 //                String output = String.valueOf(driver.executeScript("mobile:shell", args)).trim();
 //
-                CommandUtils.execCommandSync(Environment.ADB +" -s "+ device.getSerial() + " shell rm -r /mnt/sdcard/h2Test");
-                CommandUtils.execCommandSync(Environment.ADB +" -s "+ device.getSerial() + " shell rm -r /mnt/sdcard/burn");
+                device.execAdbShell("rm -r /mnt/sdcard/h2Test");
+                device.execAdbShell("rm -r /mnt/sdcard/burn");
 
 //                log.info(output);
             } catch (Exception e) {

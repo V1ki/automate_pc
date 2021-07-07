@@ -15,8 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
-@ToString(exclude = {"appium","ip","installedApp","scriptPath","currentLog","forwardPort"})
-@EqualsAndHashCode(of = "serial")
+@ToString(exclude = {"appium", "ip", "installedApp", "scriptPath", "currentLog", "forwardPort"})
+@EqualsAndHashCode(of = { "serial","transportId" })
 @Slf4j
 public class Device {
 
@@ -66,17 +66,19 @@ public class Device {
      * adb forward的端口.
      * 这个指的是PC上的端口,而不是Android端的,因为Android端的端口是固定的19000
      */
-    private Integer forwardPort ;
+    private Integer forwardPort;
 
     /**
      * 对于每个设备来说,单次测试只需要执行一个脚本. 只有当开始测试的时候,脚本才会被设置.
      */
-    private String scriptPath ;
+    private String scriptPath;
+
+    private boolean isStarted;
 
     /**
      * 当前测试的log 文件.每次断开后,或者重新启动应用后,就需要重新配置一个文件
      */
-    private File currentLog ;
+    private File currentLog;
 
     private List<Record> recordList = new ArrayList<>();
 
@@ -118,11 +120,7 @@ public class Device {
 
     public String getManufacture() {
         if (UNKNOWN.equals(manufacture)) {
-            try {
-                manufacture = CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " shell getprop ro.product.vendor.manufacturer");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            manufacture = this.execAdbShell(" getprop ro.product.vendor.manufacturer");
         }
         return manufacture;
     }
@@ -156,22 +154,14 @@ public class Device {
 
     public String getAndroidVersion() {
         if (UNKNOWN.equals(androidVersion)) {
-            try {
-                androidVersion = CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " shell getprop ro.build.version.release");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            androidVersion = this.execAdbShell("getprop ro.build.version.release");
         }
         return androidVersion;
     }
 
     public String getApiVersion() {
         if (UNKNOWN.equals(apiVersion)) {
-            try {
-                apiVersion = CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " shell getprop ro.build.version.sdk");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            apiVersion = this.execAdbShell("getprop ro.build.version.sdk");
         }
         return apiVersion;
     }
@@ -179,40 +169,35 @@ public class Device {
     public String getIp() {
 
         if (UNKNOWN.equals(ip)) {
-            try {
-                String str = CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " shell ifconfig");
-                log.info("ip: {}", str);
+            String str = this.execAdbShell("ifconfig");
+            log.info("ip: {}", str);
 
-                String[] interfaces = str.split("\n\n");
-                log.info("interfaces: {}", Arrays.toString(interfaces));
+            String[] interfaces = str.split("\n\n");
+            log.info("interfaces: {}", Arrays.toString(interfaces));
 
-                StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < interfaces.length; i++) {
-                    String interfaceInfo = interfaces[i];
-                    if (!interfaceInfo.contains("inet addr:")) {
-                        break;
-                    }
-                    String[] infoLines = interfaceInfo.split("\n");
-                    Arrays.stream(infoLines)
-                            .filter(s -> s.contains("inet addr:"))
-                            .findFirst()
-                            .map(s -> s.replace("inet addr:", "").trim())
-                            .map(s -> s.split(" ")[0])
-                            .ifPresent(s -> {
-                                stringBuilder.append(s).append("/");
-                            });
-
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < interfaces.length; i++) {
+                String interfaceInfo = interfaces[i];
+                if (!interfaceInfo.contains("inet addr:")) {
+                    break;
                 }
+                String[] infoLines = interfaceInfo.split("\n");
+                Arrays.stream(infoLines)
+                        .filter(s -> s.contains("inet addr:"))
+                        .findFirst()
+                        .map(s -> s.replace("inet addr:", "").trim())
+                        .map(s -> s.split(" ")[0])
+                        .ifPresent(s -> {
+                            stringBuilder.append(s).append("/");
+                        });
 
-                if (stringBuilder.length() > 1) {
-                    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-                }
-
-                ip = stringBuilder.toString();
-
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+
+            if (stringBuilder.length() > 1) {
+                stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+            }
+
+            ip = stringBuilder.toString();
         }
         return ip;
     }
@@ -220,7 +205,7 @@ public class Device {
     public String execAdb(String command) {
 
         try {
-            return CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " " + command);
+            return CommandUtils.execCommandSync(Environment.ADB + " -s " + this.serial + " -t " + this.transportId + " " + command);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -228,7 +213,7 @@ public class Device {
     }
 
     public String execAdbShell(String shell) {
-        return execAdb("shell "+shell);
+        return execAdb("shell " + shell);
     }
 
     public void fetchListPackages() {
@@ -239,7 +224,7 @@ public class Device {
                         stream.map(s -> s.replace("package:", ""))
                                 .map(s -> {
                                     String[] strs = s.split("=");
-                                    return strs[strs.length-1];
+                                    return strs[strs.length - 1];
                                 })
                                 .collect(Collectors.toList())
 
@@ -261,40 +246,42 @@ public class Device {
         getIp();
         fetchListPackages();
         // 初始化文件
-        currentLog = new File("devices/"+this.serial+"/logs/"+System.currentTimeMillis()+".log");
+        currentLog = new File("devices/" + this.serial + "/logs/" + System.currentTimeMillis() + ".log");
     }
 
     //Environment.APK_DIR+File.separator+"H2Test.apk"
-    public void preInstallApp(String bundleID, String appPath){
-        log.info("preInstallApp bundleID:{}",bundleID);
-        if(installedApp.contains(bundleID)) {
+    public void preInstallApp(String bundleID, String appPath) {
+        log.info("preInstallApp bundleID:{}", bundleID);
+        if (installedApp.contains(bundleID)) {
             return;
         }
-        this.execAdb(" install -r "+appPath) ;
+        this.execAdb(" install -r " + appPath);
     }
 
-    public void grantPermission(String packageName ,String permission){
-        this.execAdbShell("pm grant "+packageName+" "+permission) ;
+    public void grantPermission(String packageName, String permission) {
+        this.execAdbShell("pm grant " + packageName + " " + permission);
     }
 
 
-
-    public void startIozoneLog(){
-        if(this.forwardPort != null) {
-            String list = this.execAdb(" forward --list") ;
-            if(list.contains("tcp:"+forwardPort+" tcp:19000")){
+    public void startIozoneLog() {
+        if (this.forwardPort != null) {
+            String list = this.execAdb(" forward --list");
+            if (list.contains("tcp:" + forwardPort + " tcp:19000")) {
                 return;
             }
         }
         try {
             int port = CommandUtils.findAvailablePort(18000);
-            this.forwardPort = port ;
-            this.execAdb(" forward tcp:"+port+" tcp:19000");
+            this.forwardPort = port;
+            this.execAdb(" forward tcp:" + port + " tcp:19000");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public void rebootDevice() {
+        this.execAdb(" reboot") ;
+    }
 
     private static DeviceFieldType getFieldType(String str) {
         if (str == null) {

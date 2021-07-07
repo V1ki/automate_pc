@@ -111,17 +111,6 @@ public class CommandUtils implements Commander{
         return execCommandSync(command,500);
     }
 
-    public static void rebootDevice(String serial) {
-        String command = Environment.ADB + " -s " + serial + " reboot" ;
-
-        try {
-            execCommandSync(command) ;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
     public static int findAvailablePort(int startPort) throws Exception{
         String command = "netstat -an " ;
         String result = execCommandSync(command) ;

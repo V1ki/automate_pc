@@ -283,7 +283,7 @@ public class MainController implements Initializable {
             MenuItem rebootItem = new MenuItem("重启");
             rebootItem.setOnAction(itemEvent -> {
                 Device d = row.getItem();
-                CommandUtils.rebootDevice(d.getSerial());
+                d.rebootDevice();
                 AppiumManager.getInstance().stopAppium(d);
             });
 
