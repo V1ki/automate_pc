@@ -42,17 +42,17 @@ public class Automation {
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd_HH_mm");
 
-    private final String resultDir ;
+//    private final String resultDir ;
 
     public Automation(Device device ){
         this.device = device ;
         this.driver = device.getAppium().getDriver() ;
-        resultDir = Environment.RESULTS_DIR + "Test_" + simpleDateFormat.format(new Date())  + File.separator;
-
-        File resultDirFile = new File(resultDir) ;
-        if(!resultDirFile.exists() && !resultDirFile.mkdirs()){
-             log.warn("create test folder failed");
-        }
+//        resultDir = Environment.RESULTS_DIR + "Test_" + simpleDateFormat.format(new Date())  + File.separator;
+//
+//        File resultDirFile = new File(resultDir) ;
+//        if(!resultDirFile.exists() && !resultDirFile.mkdirs()){
+//             log.warn("create test folder failed");
+//        }
     }
 
 
@@ -294,7 +294,7 @@ public class Automation {
                 MobileElement btnResultOk = (MobileElement) wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.silicongo.burntest:id/btnResultOk")));
                 if (btnResultOk != null) {
 //                    screenshot("./burntest.png");
-                    screenshot(resultDir+"burnTest_"+simpleDateFormat.format(new Date())+".png");
+//                    screenshot(resultDir+"burnTest_"+simpleDateFormat.format(new Date())+".png");
 
                     btnResultOk.click();
                     break;
@@ -381,7 +381,7 @@ public class Automation {
 
                     MobileElement btnTestEnd = (MobileElement) wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.example.sg.h2test:id/btnTestEnd")));
                     if (btnTestEnd != null && "OK".equals(btnTestEnd.getText())) {
-                        screenshot(resultDir+"h2Test_"+simpleDateFormat.format(new Date())+".png");
+//                        screenshot(resultDir+"h2Test_"+simpleDateFormat.format(new Date())+".png");
 
 
                         MobileElement tvInfo = waitForPresence(5, "com.example.sg.h2test:id/tvInfo");
@@ -478,7 +478,7 @@ public class Automation {
             MobileElement el5 = waitForPresence(30, "android:id/button2");
             el5.click();
             log.info(" found cancel button and click");
-            screenshot(resultDir+"androbench_"+simpleDateFormat.format(new Date())+".png");
+//            screenshot(resultDir+"androbench_"+simpleDateFormat.format(new Date())+".png");
 
             List<MobileElement> keys = driver.findElementsByAndroidUIAutomator("new UiSelector().resourceId(\"com.andromeda.androbench2:id/row_testing_name\")");
             List<MobileElement> values = driver.findElementsByAndroidUIAutomator("new UiSelector().resourceId(\"com.andromeda.androbench2:id/row_testing_status\")");

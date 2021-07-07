@@ -39,12 +39,12 @@ public class Environment {
         ADB = ANDROID_HOME + File.separator + "platform-tools" + File.separator + "adb"+ (Optional.ofNullable(osName).orElse("Windows").contains("Windows")  ? ".exe" : "") ;
         APPIUM_ENTRY =  appium_prefix + APPIUM_MAIN_FILE ;
         RESULTS_DIR = INSTALL_DIR+File.separator+"results" + File.separator ;
-        File resultsDir = new File(RESULTS_DIR);
-        if(!resultsDir.exists()){
-            if(!resultsDir.mkdirs()){
-                log.warn("Mkdir Results failed");
-            }
-        }
+//        File resultsDir = new File(RESULTS_DIR);
+//        if(!resultsDir.exists()){
+//            if(!resultsDir.mkdirs()){
+//                log.warn("Mkdir Results failed");
+//            }
+//        }
 
     }
 
