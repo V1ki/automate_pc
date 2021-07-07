@@ -8,11 +8,11 @@ log("iozone", "Start iozone test!")
 testItemPercent = {70, 15, 4, 2, 1, 1, 2, 1, 4}
 testItemBs  = {4, 8,  12 , 16,  20 , 32,  36 , 40 , 512}
 
-availableCap = command.shell("df |  grep '/storage/emulated' | awk 'NR==1' | tr -s ' ' | cut -d ' ' -f 4")
+availableCap = command.shell("df |  grep '/storage/emulated' | head -n 1  | tr -s ' ' | cut -d ' ' -f 4")
 log('iozone', string.format('availableCap:%d!',availableCap))
 availableCap = availableCap/1024 - 400
 
-emmcSize = command.shell("df | grep '/storage/emulated' | awk 'NR==1' | tr -s ' ' | cut -d ' ' -f 2")
+emmcSize = command.shell("df | grep '/storage/emulated' | head -n 1  | tr -s ' ' | cut -d ' ' -f 2")
 emmcSize = emmcSize / 1024
 totalPercent = 0
 TBWSize = 0
@@ -56,19 +56,19 @@ log('iozone', string.format('prepare test!  Already Write:%s ',humanSize(writeCo
 local earlyBreak = false
 while true do
 
-    command.shell("rm /mnt/sdcard/*.io")
-    availableCap = command.shell("df |  grep '/storage/emulated' | awk 'NR==1' | tr -s ' ' | cut -d ' ' -f 4")
+    command.shell("rm /storage/emulated/0/*.io")
+    availableCap = command.shell("df |  grep '/storage/emulated' | head -n 1  | tr -s ' ' | cut -d ' ' -f 4")
     availableCap = availableCap/1024 - 400
 
     for i=1,#testItemPercent do
         log('iozone', string.format('start No.%d test!',i))
         local itemCap = availableCap * testItemPercent[i] * testItemBs[i] / totalPercent
---         command.shell(string.format('touch /mnt/sdcard/%d_seq.io',testItemBs[i]))
-        local options = string.format(' -w -i0 -i2 -r%dk -s%dm -f /mnt/sdcard/%d_seq.io',testItemBs[i], itemCap ,testItemBs[i])
+        command.shell(string.format('touch /storage/emulated/0/%d_seq.io',testItemBs[i]))
+        local options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_seq.io',testItemBs[i], itemCap ,testItemBs[i])
         log('iozone', options)
         log('iozone', command.iozone(options))
         writeCount = writeCount + itemCap * 3
-        ----    command.pull("/mnt/sdcard/test.bin", "/Users/v1ki/IdeaProjects/automate_pc/results")
+        ----    command.pull("/storage/emulated/0/test.bin", "/Users/v1ki/IdeaProjects/automate_pc/results")
         log('iozone', string.format('No.%d test completed !  Already Write:%s ',i,humanSize(writeCount)))
         currTestCap = currTestCap + itemCap * 3
         if currTestCap >= TBWSize then
