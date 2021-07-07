@@ -1,7 +1,6 @@
 package com.yeesotr.auto.view.main;
 
 import com.fazecast.jSerialComm.SerialPort;
-import com.yeesotr.auto.android.command.ADBCommand;
 import com.yeesotr.auto.android.model.Device;
 import com.yeesotr.auto.android.serial.AndroidSerialPort;
 import javafx.collections.FXCollections;
@@ -85,14 +84,14 @@ public class AddSerialDeviceController implements Initializable {
             String ip = androidSerialPort.getIpAddr();
             log.info("ip:" + ip);
             androidSerialPort.setAdbTcpPort(5555);
-            ADBCommand remoteDevice = new ADBCommand(ip, 5555);
-            boolean isConnected = remoteDevice.isConnected();
-
-            log.info("isConnected:" + isConnected);
-
-            if (!isConnected) {
-                remoteDevice.connect();
-            }
+//            ADBCommand remoteDevice = new ADBCommand(ip, 5555);
+//            boolean isConnected = remoteDevice.isConnected();
+//
+//            log.info("isConnected:" + isConnected);
+//
+//            if (!isConnected) {
+//                remoteDevice.connect();
+//            }
             androidSerialPort.closePort() ;
 
 
