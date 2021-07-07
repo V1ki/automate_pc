@@ -57,7 +57,14 @@ public class ScriptNodeController implements Initializable, DeviceOperator {
         // 否则需要选择脚本开始测试
         if (device.getScriptPath() != null) {
             pathText.setText(device.getScriptPath());
+        }
+
+        if(device.isStarted()) {
             _toggleStatus(true);
+        }
+        else {
+
+            _toggleStatus(false);
         }
 
 
@@ -119,36 +126,59 @@ public class ScriptNodeController implements Initializable, DeviceOperator {
 
         _toggleStatus(true);
 
-        Task<Boolean> task = new Task<Boolean>() {
+        new Thread(){
             @Override
-            protected Boolean call() {
+            public void run() {
 
+                currentDevice.setStarted(true);
                 try {
                     currentDevice.setScriptPath(path);
                     // 启动lua 引擎来解析
                     LuaValue chunk = globals.loadfile(path);
                     log.info("chunk:{}",chunk);
                     chunk.call(LuaValue.valueOf(path));
+                    currentDevice.setStarted(false);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                return true;
+
+                _toggleStatus(false);
+                currentDevice.setStarted(false);
             }
-        };
-        task.setOnSucceeded((e) -> {
-            _toggleStatus(false);
-            currentDevice.setScriptPath(null);
+        }.start();
 
-        });
-        task.setOnFailed((e) -> {
-            log.info("OnFailed: {}", e);
-            _toggleStatus(false);
-            currentDevice.setScriptPath(null);
+//        Task<Boolean> task = new Task<Boolean>() {
+//            @Override
+//            protected Boolean call() {
+//
+//                try {
+//                    currentDevice.setScriptPath(path);
+//                    currentDevice.setStarted(true);
+//                    // 启动lua 引擎来解析
+//                    LuaValue chunk = globals.loadfile(path);
+//                    log.info("chunk:{}",chunk);
+//                    chunk.call(LuaValue.valueOf(path));
+//                    currentDevice.setStarted(false);
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                return true;
+//            }
+//        };
+//        task.setOnSucceeded((e) -> {
+//            _toggleStatus(false);
+//            currentDevice.setStarted(false);
+//
+//        });
+//        task.setOnFailed((e) -> {
+//            log.info("OnFailed: {}", e);
+//            _toggleStatus(false);
+//            currentDevice.setStarted(false);
+//        });
 
-        });
-
-        new Thread(task).start();
+//        new Thread(task).start();
     }
 
     public void onDetailClicked(ActionEvent actionEvent) {
@@ -191,7 +221,7 @@ public class ScriptNodeController implements Initializable, DeviceOperator {
      */
     public void onStopClicked(ActionEvent actionEvent) {
         currentDevice.getAppium().disconnect();
-        _toggleStatus(true);
+        _toggleStatus(false);
     }
 
 

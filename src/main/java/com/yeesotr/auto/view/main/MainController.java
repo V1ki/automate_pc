@@ -146,10 +146,14 @@ public class MainController implements Initializable {
                     needRemoveDeviceList.add(d) ;
                 }
             });
+            deviceObservableList.removeAll(needRemoveDeviceList) ;
             needRemoveDeviceList.stream().map(Device::getAppium).filter(Objects::nonNull).forEach(Appium::stop);
 
-            deviceObservableList.clear();
-            deviceObservableList.addAll(tmpResult);
+            for (Device d : tmpResult) {
+                if (!deviceObservableList.contains(d)) {
+                    deviceObservableList.add(d);
+                }
+            }
             log.info("refreshDeviceList!");
         });
     }
@@ -214,12 +218,15 @@ public class MainController implements Initializable {
                 // 在这里写实际操作.
                 log.info("device:{}",device);
                 device.init();
+                log.info("installedApp: {}", device.getInstalledApp());
+                if(!device.getInstalledApp().contains("com.yeestor.iozone")){
+                    // install app
+                    device.preInstallApp("com.yeestor.iozone",
+                            Environment.APK_DIR+ File.separator+"iozone-release.apk");
 
-                device.preInstallApp("com.yeestor.iozone",
-                        Environment.APK_DIR+ File.separator+"iozone-release.apk");
-
-                device.grantPermission("com.yeestor.iozone","android.permission.READ_EXTERNAL_STORAGE");
-                device.grantPermission("com.yeestor.iozone","android.permission.WRITE_EXTERNAL_STORAGE");
+                    device.grantPermission("com.yeestor.iozone","android.permission.READ_EXTERNAL_STORAGE");
+                    device.grantPermission("com.yeestor.iozone","android.permission.WRITE_EXTERNAL_STORAGE");
+                }
 
                 Platform.runLater(()-> dialog.setTitle("正在连接设备中..."));
                 entryController.setDevice(device);
