@@ -74,7 +74,15 @@ public class Automation {
 
 
     public void terminateApp(String bundleId){
-        driver.terminateApp(bundleId);
+        try {
+            driver.terminateApp(bundleId);
+        }
+        catch (Exception e) {
+            log.warn("terminate app error: {} ,try to use am force-stop" ,e.getMessage());
+
+            device.execAdbShell(" am force-stop "+bundleId) ;
+        }
+
     }
 
     public void grantPermission(String packageName ,String permission){
