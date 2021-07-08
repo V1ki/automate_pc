@@ -25,7 +25,7 @@ public class AppiumManager {
 
 
     public void startAppium(Device device) {
-        if (device == null || device.getAppium() != null) {
+        if (device == null || device.getAppium() != null || !device.isAlive()) {
             return;
         }
         try {
@@ -46,16 +46,16 @@ public class AppiumManager {
                 }
             }
 
-            boolean isConnected = appium.connect(device);
-            if(!isConnected) {
+            boolean isConnected = false;
+           do{
                 // 检查设备是否存在?
                 if(!device.isAlive()){
                     appium.stop();
                     return;
                 }
-                startAppium(device);
-                return ;
-            }
+                isConnected = appium.connect(device);
+                Thread.sleep(500);
+            } while(!isConnected) ;
             appiumList.add(appium);
         } catch (Exception e) {
             e.printStackTrace();
