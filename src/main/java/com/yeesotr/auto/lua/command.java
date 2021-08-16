@@ -147,25 +147,7 @@ public class command extends TwoArgFunction {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    log.info(currentDevice.execAdb("forward --list"));
 
-                    try {
-                        socket = new Socket("localhost", currentDevice.getForwardPort());
-                        log.debug("建立新连接:" + socket);
-                        dis = new DataInputStream(socket.getInputStream());
-
-                        while (true) {
-                            String s = dis.readUTF();
-                            sb.append(s);
-                            if (s.contains("iozone test complete")) {
-                                break;
-                            }
-
-                        }
-                    }
-                    catch (Exception e1){
-                        e1.printStackTrace();
-                    }
 
                 } finally {
                     try {
