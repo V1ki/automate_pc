@@ -5,10 +5,10 @@ require 'command'
 
 log("iozone", "Start iozone test!")
 
--- testItemPercent = {70, 15, 4, 2, 1, 1, 2, 1, 4}
--- testItemBs  = {4, 8,  12 , 16,  20 , 32,  36 , 40 , 512}
-testItemPercent = {4,70, 15, 4, 2, 1, 1, 2, 1}
-testItemBs  = {512,4, 8,  12 , 16,  20 , 32,  36 , 40 }
+testItemPercent = {70, 15, 4, 2, 1, 1, 2, 1, 4}
+testItemBs  = {4, 8,  12 , 16,  20 , 32,  36 , 40 , 512}
+-- testItemPercent = {4,70, 15, 4, 2, 1, 1, 2, 1}
+-- testItemBs  = {512,4, 8,  12 , 16,  20 , 32,  36 , 40 }
 
 availableCap = command.shell("df |  grep '/data/media' | head -n 1  | tr -s ' ' | cut -d ' ' -f 4")
 log('iozone', string.format('availableCap:%d!',availableCap))
@@ -84,7 +84,7 @@ while true do
             if itemCap > 0 then
 
                 command.shell(string.format('touch /storage/emulated/0/%d_%d_seq.io',itemBS, cycle + 1))
-                options = string.format('-w -i0 -i2 -r%dk -s4000m -f /storage/emulated/0/%d_%d_seq.io',itemBS, itemBS, cycle + 1 )
+                options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_%d_seq.io',itemBS,  itemCap, itemBS, cycle + 1 )
                 log('iozone', options)
                 log('iozone', command.iozone(options))
             end

@@ -559,6 +559,9 @@ public class Automation {
         return waitForPresence(timeLimitInSeconds, By.id(targetResourceId));
     }
 
+    public String getCurrentPackage(){
+        return driver.getCurrentPackage();
+    }
 
     public MobileElement waitForPresenceMS(int timeLimitInSeconds, String targetResourceId) {
         try {
@@ -567,8 +570,8 @@ public class Automation {
         } catch (Exception e) {
             log.warn("cannot find element using: {} : {}",targetResourceId, e.getMessage());
 //            e.printStackTrace();
+            log.warn("current package : {} --  activity: {}" ,driver.getCurrentPackage(), driver.currentActivity());
             screenshotNow();
-
             return null;
         }
     }

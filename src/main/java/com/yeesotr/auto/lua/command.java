@@ -17,6 +17,7 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 import java.io.DataInputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
@@ -114,13 +115,20 @@ public class command extends TwoArgFunction {
                 //
                 automation.dismiss();
                 iozoneOptionText = automation.waitForPresenceMS(2000, "com.yeestor.iozone:id/iozoneOptionText");
+                if(iozoneOptionText == null) {
 
-                log.info(" can not found OptionText");
-                try {
-                    Thread.sleep(1000 * 60 );
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    if(!Objects.equals("com.yeestor.iozone", automation.getCurrentPackage())) {
+                        automation.pullToForeground("com.yeestor.iozone", ".MainActivity");
+                    }
+
+                    log.info(" can not found OptionText");
+                    try {
+                        Thread.sleep(1000 * 60 );
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+
             }
             iozoneOptionText.clear();
             iozoneOptionText.setValue(iozoneOption);
