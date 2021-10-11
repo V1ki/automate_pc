@@ -1,3 +1,5 @@
 # Project exclude paths
 /target/
 .idea/GrepConsole.xml
+/logs/
+/devices/

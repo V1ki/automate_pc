@@ -10,6 +10,8 @@ testItemBs  = {4, 8,  12 , 16,  20 , 32,  36 , 40 , 512}
 -- testItemPercent = {4,70, 15, 4, 2, 1, 1, 2, 1}
 -- testItemBs  = {512,4, 8,  12 , 16,  20 , 32,  36 , 40 }
 
+command.shell("rm /storage/emulated/0/*.io")
+
 availableCap = command.shell("df |  grep '/data/media' | head -n 1  | tr -s ' ' | cut -d ' ' -f 4")
 log('iozone', string.format('availableCap:%d!',availableCap))
 availableCap = availableCap/1024 - 400
@@ -66,7 +68,7 @@ while true do
         log('iozone', string.format('start No.%d test!',i))
         local itemCap = availableCap * testItemPercent[i] * testItemBs[i] / totalPercent
 
-        local options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_seq.io',testItemBs[i], itemCap ,testItemBs[i])
+        local options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_seq.io ',testItemBs[i], itemCap ,testItemBs[i])
         if itemCap > 4000 then
             local cycle = itemCap / 4000
             log('iozone', string.format(' cycle:.%d test itemCap :%d!',cycle,itemCap))
@@ -74,8 +76,8 @@ while true do
 
 
             for i=1,cycle ,1 do
-                command.shell(string.format('touch /storage/emulated/0/%d_%d_seq.io',itemBS, i))
-                options = string.format('-w -i0 -i2 -r%dk -s4000m -f /storage/emulated/0/%d_%d_seq.io',itemBS, itemBS,i )
+                command.shell(string.format('touch /storage/emulated/0/%d_%d_seq.io ',itemBS, i))
+                options = string.format('-w -i0 -i2 -r%dk -s4000m -f /storage/emulated/0/%d_%d_seq.io ',itemBS, itemBS,i )
                 log('iozone', options)
                 log('iozone', command.iozone(options))
                 itemCap = itemCap - 4000
@@ -83,8 +85,8 @@ while true do
 
             if itemCap > 0 then
 
-                command.shell(string.format('touch /storage/emulated/0/%d_%d_seq.io',itemBS, cycle + 1))
-                options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_%d_seq.io',itemBS,  itemCap, itemBS, cycle + 1 )
+                command.shell(string.format('touch /storage/emulated/0/%d_%d_seq.io ',itemBS, cycle + 1))
+                options = string.format('-w -i0 -i2 -r%dk -s%dm -f /storage/emulated/0/%d_%d_seq.io ',itemBS,  itemCap, itemBS, cycle + 1 )
                 log('iozone', options)
                 log('iozone', command.iozone(options))
             end

@@ -6,6 +6,7 @@ import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -20,7 +21,8 @@ import java.util.Scanner;
 
 public class ConsoleViewController implements Initializable, DeviceOperator, LogUtils.LogDisplay {
     public ScrollPane scrollPane;
-    public TextFlow textFlow;
+//    public TextFlow textFlow;
+    public TextField display ;
     private Font font ;
     private Transition down ;
 
@@ -41,7 +43,7 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
 
                     }
                 };
-        textFlow.heightProperty().addListener((observable, oldValue, newValue) -> {
+        display.heightProperty().addListener((observable, oldValue, newValue) -> {
 
             down.play();
 //            scrollPane.setVvalue(1.0);
@@ -50,8 +52,7 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
 
     @Override
     public void setDevice(Device device) {
-        textFlow.getChildren().clear();
-
+//        textFlow.getChildren().clear();
         // read info from file ;
         // 获取当前测试日志的文件
         File file = device.getCurrentLog();
@@ -62,12 +63,7 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
                 sb.append(scanner.nextLine()).append("\n");
             }
 
-            Text text = new Text(sb.toString());
-            text.setFill(Color.WHITE);
-            text.setFont(font);
-            textFlow.getChildren().add(
-                    text
-            );
+            display.setText(sb.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -78,12 +74,13 @@ public class ConsoleViewController implements Initializable, DeviceOperator, Log
     public void info(String time, String tag, String msg) {
         Platform.runLater(()->{
             String line = time + LogUtils.SEPARATOR + tag   + LogUtils.SEPARATOR + msg + "\n";
-            Text text = new Text(line);
-            text.setFill(Color.WHITE);
-            text.setFont(font);
-            textFlow.getChildren().add(
-                    text
-            );
+//            Text text = new Text(line);
+//            text.setFill(Color.WHITE);
+//            text.setFont(font);
+//            textFlow.getChildren().add(
+//                    text
+//            );
+            display.setText(display.getText() + line );
         });
     }
 }

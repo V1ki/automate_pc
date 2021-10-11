@@ -539,9 +539,12 @@ public class Automation {
     }
 
     public void screenshot(String filepath) throws Exception {
-        File file = driver.getScreenshotAs(OutputType.FILE);
-        Files.copy(Paths.get(file.getPath()), Paths.get(filepath), StandardCopyOption.REPLACE_EXISTING);
+        try {
+            File file = driver.getScreenshotAs(OutputType.FILE);
+            Files.copy(Paths.get(file.getPath()), Paths.get(filepath), StandardCopyOption.REPLACE_EXISTING);
+        }catch (Exception e){
 
+        }
     }
 
     public void screenshotNow(){

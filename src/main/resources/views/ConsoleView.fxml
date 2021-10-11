@@ -14,14 +14,20 @@
          <children>
             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" prefViewportHeight="768.0" prefViewportWidth="1024.0" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
                <content>
-                  <TextFlow fx:id="textFlow" prefHeight="200.0" prefWidth="1014.0" style="-fx-background-color: #000000; -fx-background-radius: 0;">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="上士闻道，勤而行之；\n  中士闻道，若存若亡；\n 下士闻道，大笑之。\n 不笑不足以为道。\n 故建言有之：明道若昧；\n 进道若退；夷道若颣；\n 上德若谷，大白若辱，广德若不足，建德若偷，质真若渝；\n 大方无隅；\n 大器晚成；\n 大音希声；\n 大象无形。\n 道隐无名。\n 夫唯道，善始且善成。\n " wrappingWidth="995.02197265625" />
-                     </children>
-                     <effect>
-                        <DropShadow />
-                     </effect>
-                  </TextFlow>
+<!--                  <TextFlow fx:id="textFlow" prefHeight="200.0" prefWidth="1014.0" style="-fx-background-color: #000000; -fx-background-radius: 0;">-->
+<!--                     <children>-->
+<!--                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="上士闻道，勤而行之；\n  中士闻道，若存若亡；\n 下士闻道，大笑之。\n 不笑不足以为道。\n 故建言有之：明道若昧；\n 进道若退；夷道若颣；\n 上德若谷，大白若辱，广德若不足，建德若偷，质真若渝；\n 大方无隅；\n 大器晚成；\n 大音希声；\n 大象无形。\n 道隐无名。\n 夫唯道，善始且善成。\n " wrappingWidth="995.02197265625" />-->
+<!--                     </children>-->
+<!--                     <effect>-->
+<!--                        <DropShadow />-->
+<!--                     </effect>-->
+<!--                  </TextFlow>-->
+
+                  <TextField fx:id="display" layoutX="150.0" layoutY="42.0" prefHeight="200.0" prefWidth="1014.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
                </content>
             </ScrollPane>
          </children>

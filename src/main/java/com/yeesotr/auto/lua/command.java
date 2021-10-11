@@ -114,24 +114,31 @@ public class command extends TwoArgFunction {
             while (iozoneOptionText == null) {
                 //
                 automation.dismiss();
-                iozoneOptionText = automation.waitForPresenceMS(2000, "com.yeestor.iozone:id/iozoneOptionText");
-                if(iozoneOptionText == null) {
-
-                    if(!Objects.equals("com.yeestor.iozone", automation.getCurrentPackage())) {
-                        automation.pullToForeground("com.yeestor.iozone", ".MainActivity");
-                    }
-
-                    log.info(" can not found OptionText");
-                    try {
-                        Thread.sleep(1000 * 60 );
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                if(!Objects.equals("com.yeestor.iozone", automation.getCurrentPackage())) {
+                    automation.pullToForeground("com.yeestor.iozone", ".MainActivity");
                 }
 
+                log.info(" can not found OptionText");
+                try {
+                    Thread.sleep(1000 * 60 );
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                iozoneOptionText = automation.waitForPresenceMS(2000, "com.yeestor.iozone:id/iozoneOptionText");
+
+
             }
-            iozoneOptionText.clear();
-            iozoneOptionText.setValue(iozoneOption);
+            try {
+
+                iozoneOptionText.clear();
+                iozoneOptionText.setValue(iozoneOption);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                log.warn("CurrentPackage(): {}" ,automation.getCurrentPackage());
+
+            }
 
             Device currentDevice = automation.getDevice();
 
