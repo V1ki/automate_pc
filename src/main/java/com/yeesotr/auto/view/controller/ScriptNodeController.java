@@ -126,6 +126,9 @@ public class ScriptNodeController implements Initializable, DeviceOperator {
 
         _toggleStatus(true);
 
+        // 这里改为由 设备管理器以及 任务管理器来接管
+
+
         new Thread(){
             @Override
             public void run() {

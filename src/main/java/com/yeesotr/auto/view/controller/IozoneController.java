@@ -35,12 +35,10 @@ public class IozoneController implements Initializable,DeviceOperator {
 
     private Device currentDevice ;
     private Socket mSocket = null;
-    private ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = null;
     private ScheduledFuture<?> mScheduledFuture = null;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 
     }
 
@@ -152,23 +150,23 @@ public class IozoneController implements Initializable,DeviceOperator {
 
         currentDevice.startIozoneLog();
 
-        mScheduledFuture = mScheduledThreadPoolExecutor.scheduleAtFixedRate( () -> {
-            if (mSocket == null || !mSocket.isConnected()) {
-                log.debug("尝试建立连接...");
-                try {
-                    mSocket = new Socket("localhost", currentDevice.getForwardPort());
-                    log.debug("建立新连接:" + mSocket.toString());
-                    if(mSocket.isConnected() && !mSocket.isClosed()) {
-                        CompletableFuture.runAsync(this::session);
-                    }
-
-                } catch (Exception e) {
-                    log.info("连接异常");
-                }
-            } else {
-//                    mLogger.info("连接心跳检测:当前已经建立连接，无需重连");
-            }
-        }, 0, 3, TimeUnit.SECONDS);
+//        mScheduledFuture = mScheduledThreadPoolExecutor.scheduleAtFixedRate( () -> {
+//            if (mSocket == null || !mSocket.isConnected()) {
+//                log.debug("尝试建立连接...");
+//                try {
+//                    mSocket = new Socket("localhost", currentDevice.getForwardPort());
+//                    log.debug("建立新连接:" + mSocket.toString());
+//                    if(mSocket.isConnected() && !mSocket.isClosed()) {
+//                        CompletableFuture.runAsync(this::session);
+//                    }
+//
+//                } catch (Exception e) {
+//                    log.info("连接异常");
+//                }
+//            } else {
+////                    mLogger.info("连接心跳检测:当前已经建立连接，无需重连");
+//            }
+//        }, 0, 3, TimeUnit.SECONDS);
 
 
         MobileElement startBtn = automation.waitForPresence(1,"com.yeestor.iozone:id/startBtn");

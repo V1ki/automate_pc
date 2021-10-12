@@ -3,11 +3,14 @@ package com.yeesotr.auto.android.model;
 
 import com.yeesotr.auto.android.command.CommandUtils;
 import com.yeesotr.auto.appium.Appium;
+import com.yeesotr.auto.appium.AppiumManager;
 import com.yeesotr.auto.env.Environment;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +58,7 @@ public class Device {
     private String apiVersion = UNKNOWN;
     private String manufacture;
     private List<String> installedApp = new ArrayList<>();
+    private Globals globals = JsePlatform.standardGlobals(); ;
 
 
     /**
@@ -81,6 +85,10 @@ public class Device {
     private File currentLog;
 
     private List<Record> recordList = new ArrayList<>();
+
+    public void connect()throws Exception{
+        AppiumManager.getInstance().startAppium(this);
+    }
 
     public static Device convert2Device(String line) {
         String[] datas = line.split("\\s+");

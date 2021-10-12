@@ -39,6 +39,8 @@ public class Environment {
         ADB = ANDROID_HOME + File.separator + "platform-tools" + File.separator + "adb"+ (Optional.ofNullable(osName).orElse("Windows").contains("Windows")  ? ".exe" : "") ;
         APPIUM_ENTRY =  appium_prefix + APPIUM_MAIN_FILE ;
         RESULTS_DIR = INSTALL_DIR+File.separator+"results" + File.separator ;
+
+        log.debug("ADB:"+ADB);
 //        File resultsDir = new File(RESULTS_DIR);
 //        if(!resultsDir.exists()){
 //            if(!resultsDir.mkdirs()){

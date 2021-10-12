@@ -1,6 +1,7 @@
 package com.yeesotr.auto.view.main;
 
 import com.yeesotr.auto.android.Automation;
+import com.yeesotr.auto.android.DeviceManager;
 import com.yeesotr.auto.android.command.CommandUtils;
 import com.yeesotr.auto.android.model.Device;
 import com.yeesotr.auto.appium.Appium;
@@ -69,6 +70,8 @@ public class MainController implements Initializable {
     private ScheduledFuture<?> mScheduledFuture = null;
     Disposable disposable;
 
+    private DeviceManager deviceManager = new DeviceManager();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -81,81 +84,35 @@ public class MainController implements Initializable {
         entryController.init(this);
         _initLeftView();
         _initDeviceRefresh();
+
     }
 
     private void _initDeviceRefresh() {
-        try {
-            UsbServices services = UsbHostManager.getUsbServices();
+        deviceManager.setListener(new DeviceManager.DeviceChangeListener() {
+            @Override
+            public void onDeviceAttached(Device d) {
 
-            disposable = Observable.create(emitter -> {
-                services.addUsbServicesListener(new UsbServicesListener() {
-                    @Override
-                    public void usbDeviceAttached(UsbServicesEvent event) {
-                        log.info("usbDeviceAttached: {}", event);
-//                        refreshDeviceList();
-                        if (!emitter.isDisposed()) {
-                            //发送消息
-                            emitter.onNext(event);
-                        }
-                    }
-
-                    @Override
-                    public void usbDeviceDetached(UsbServicesEvent event) {
-                        log.info("usbDeviceDetached: {}", event);
-//                        refreshDeviceList();
-                        if (!emitter.isDisposed()) {
-                            //发送消息
-                            emitter.onNext(event);
-                        }
-                    }
-                });
-
-
-                refreshBtn.setOnAction(e -> {
-                    if (!emitter.isDisposed()) {
-                        //发送消息
-                        emitter.onNext("refreshBtn");
-                    }
-                });
-
-            }).throttleLast(1, TimeUnit.SECONDS)
-                    .subscribe((arg) -> refreshDeviceList());
-        } catch (UsbException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void refreshDeviceList() {
-
-        Platform.runLater(() -> {
-            List<Device> deviceList = Device.getConnectedDevices();
-            List<Device> tmpResult = new ArrayList<>(deviceObservableList);
-            List<Device> needRemoveDeviceList = new ArrayList<>() ;
-
-            // 需要添加的设备,没有选中, 不需要处理.
-            deviceList.forEach(d -> {
-                if (!deviceObservableList.contains(d)) {
-                    tmpResult.add(d);
-                }
-            });
-            // 已经断开了的设备,需要对其相应的服务进行关闭.
-            deviceObservableList.forEach(d -> {
-                if (!deviceList.contains(d)) {
-                    tmpResult.remove(d);
-                    needRemoveDeviceList.add(d) ;
-                }
-            });
-            deviceObservableList.removeAll(needRemoveDeviceList) ;
-            needRemoveDeviceList.stream().map(Device::getAppium).filter(Objects::nonNull).forEach(Appium::stop);
-
-            for (Device d : tmpResult) {
-                if (!deviceObservableList.contains(d)) {
-                    deviceObservableList.add(d);
-                }
+                Platform.runLater(() -> deviceObservableList.add(d));
             }
-            log.info("refreshDeviceList!");
+
+            @Override
+            public void onDeviceDetached(Device device) {
+
+                Platform.runLater(() -> {
+                    deviceObservableList.remove(device);
+                    if (device.getAppium() != null) {
+                        device.getAppium().stop();
+                    }
+                });
+
+            }
         });
+
+        refreshBtn.setOnAction(e -> {
+           deviceManager.refresh();
+        });
+
+
     }
 
     private <T> void addTooltipToColumnCells(TableColumn<Device, T> column) {
@@ -216,19 +173,19 @@ public class MainController implements Initializable {
             @Override
             public Boolean call() {
                 // 在这里写实际操作.
-                log.info("device:{}",device);
+                log.info("device:{}", device);
                 device.init();
                 log.info("installedApp: {}", device.getInstalledApp());
-                if(!device.getInstalledApp().contains("com.yeestor.iozone")){
+                if (!device.getInstalledApp().contains("com.yeestor.iozone")) {
                     // install app
                     device.preInstallApp("com.yeestor.iozone",
-                            Environment.APK_DIR+ File.separator+"iozone-release.apk");
+                            Environment.APK_DIR + File.separator + "iozone-release.apk");
 
-                    device.grantPermission("com.yeestor.iozone","android.permission.READ_EXTERNAL_STORAGE");
-                    device.grantPermission("com.yeestor.iozone","android.permission.WRITE_EXTERNAL_STORAGE");
+                    device.grantPermission("com.yeestor.iozone", "android.permission.READ_EXTERNAL_STORAGE");
+                    device.grantPermission("com.yeestor.iozone", "android.permission.WRITE_EXTERNAL_STORAGE");
                 }
 
-                Platform.runLater(()-> dialog.setTitle("正在连接设备中..."));
+                Platform.runLater(() -> dialog.setTitle("正在连接设备中..."));
                 entryController.setDevice(device);
                 return true;
             }
@@ -246,7 +203,7 @@ public class MainController implements Initializable {
             // process return value again in JavaFX thread
         });
         task.setOnFailed((e) -> {
-            log.info("OnFailed:{}",e);
+            log.info("OnFailed:{}", e);
 
             dialog.setResult(device);
             dialog.close();
@@ -271,7 +228,7 @@ public class MainController implements Initializable {
 
         devicesTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             log.info("selectedItemProperty select observable:{}  -- oldValue: {} -- newValue: {}", observable, oldValue, newValue);
-            if(newValue == null){
+            if (newValue == null) {
                 _resetRightView();
                 empty.setVisible(true);
                 return;
@@ -302,7 +259,7 @@ public class MainController implements Initializable {
 
             });
 
-            rowMenu.getItems().addAll(rebootItem,screenShotItem);
+            rowMenu.getItems().addAll(rebootItem, screenShotItem);
 
             // only display context menu for non-empty rows:
             row.contextMenuProperty().bind(
